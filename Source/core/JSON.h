@@ -1810,8 +1810,7 @@ namespace Core {
                             _value += current;
                         }
 
-                        escapedSequence = (current == '\\' && escapeHandling != EscapeSequenceAction::COLLAPSE);
-
+                        escapedSequence = ((current == '\\') && (_value[_value.length() - 2] != '\\') && (escapeHandling != EscapeSequenceAction::COLLAPSE));
                         // Move on to the next position
                         result++;
                     }
