@@ -151,60 +151,51 @@ namespace Core {
             ~Message() override = default;
 
         public:
+            static size_t GetCallsignEnd(const string& designator)
+            {
+                size_t len = designator.length();
+                size_t pos = 0;
+                while( (pos = designator.find_first_of('.', pos)) != string::npos && pos < len-1 && !isdigit(designator[pos+1]))
+                    pos++;
+                return pos;
+            }
+            static size_t GetVersionEnd(const string& designator)
+            {
+                size_t pos = GetCallsignEnd(designator);
+                if(pos != string::npos)
+                    pos = designator.find_first_of('.', pos+1);
+                return pos;
+            }
             static string Callsign(const string& designator)
             {
-                size_t pos = designator.find_last_of('.', designator.find_last_of('@'));
-                if ((pos != string::npos) && (pos > 0)) {
-                    size_t index = pos - 1;
-                    while ((index != 0) && (isdigit(designator[index]))) {
-                        index--;
-                    }
-                    if ((index != 0) && (designator[index] == '.')) {
-                        pos = index;
-                    } else if ((index == 0) && (isdigit(designator[0]))) {
-                        pos = string::npos;
-                    }
-                }
+                size_t pos = GetCallsignEnd(designator);
                 return (pos == string::npos ? EMPTY_STRING : designator.substr(0, pos));
             }
             static string FullCallsign(const string& designator)
             {
-                size_t pos = designator.find_last_of('.', designator.find_last_of('@'));
+                size_t pos = GetVersionEnd(designator);
                 return (pos == string::npos ? EMPTY_STRING : designator.substr(0, pos));
             }
             static string Method(const string& designator)
             {
                 size_t end = designator.find_last_of('@');
-                size_t begin = designator.find_last_of('.', end);
-
-                return (designator.substr((begin == string::npos) ? 0 : begin + 1, (end == string::npos ? string::npos : (begin == string::npos) ? end : end - begin - 1)));
+                size_t pos = GetVersionEnd(designator);
+                return (designator.substr((pos == string::npos) ? 0 : pos + 1, (end == string::npos ? string::npos : (pos == string::npos) ? end : end - pos - 1)));
             }
             static string FullMethod(const string& designator)
             {
-                size_t pos = designator.find_last_of('.', designator.find_last_of('@'));
+                size_t pos = GetVersionEnd(designator);
                 return (designator.substr(pos == string::npos ? 0 : pos + 1));
             }
             static string VersionedFullMethod(const string& designator)
             {
-                size_t pos = designator.find_last_of('.', designator.find_last_of('@'));
-                if ((pos != string::npos) && (pos > 0)) {
-                    size_t index = pos - 1;
-                    while ((index != 0) && (isdigit(designator[index]))) {
-                        index--;
-                    }
-                    if ((index != 0) && (designator[index] == '.')) {
-                        pos = index;
-                    } else if ((index == 0) && (isdigit(designator[0]))) {
-                        pos = string::npos;
-                    }
-                }
+                size_t pos = GetCallsignEnd(designator);
                 return (designator.substr(pos == string::npos ? 0 : pos + 1));
             }
             static uint8_t Version(const string& designator)
             {
                 uint8_t result = ~0;
-                size_t pos = designator.find_last_of('.', designator.find_last_of('@'));
-
+                size_t pos = GetVersionEnd(designator);
                 if (pos != string::npos) {
                     size_t index = pos - 1;
                     while ((index != 0) && (isdigit(designator[index]))) {
@@ -225,7 +216,6 @@ namespace Core {
             static string Index(const string& designator)
             {
                 size_t end = designator.find_last_of('@');
-
                 return (end == string::npos ? EMPTY_STRING : designator.substr(end + 1, string::npos));
             }
             void Clear()

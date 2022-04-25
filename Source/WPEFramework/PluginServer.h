@@ -2574,8 +2574,15 @@ namespace PluginHost {
 
                 TRACE(SocketFlow, (element));
 
+                Core::ProxyType<Core::JSONRPC::Message> message(Core::proxy_cast<Core::JSONRPC::Message>(element));
+
+                Core::URL::KeyValue queryParams(Query());
+                Core::TextFragment namespaceParam = queryParams.Value(_T("ns"), false);
+                if (namespaceParam.IsEmpty() == false) {
+                    message->Designator = namespaceParam.Text() + string(".") + message->Designator.Value();
+                }
+
                 if (securityClearance == false) {
-                    Core::ProxyType<Core::JSONRPC::Message> message(Core::proxy_cast<Core::JSONRPC::Message>(element));
                     if (message.IsValid()) {
                         PluginHost::Channel::Lock();
                         securityClearance = _security->Allowed(*message);
